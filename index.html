@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Tirages Tournoi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .panel h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .participants-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        .participant-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .participant-item:last-child {
+            border-bottom: none;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"], input[type="number"], select {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #219a52);
+        }
+
+        .draw-area {
+            text-align: center;
+        }
+
+        .slot-machine {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .slot {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            border: 4px solid #2c3e50;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .match {
+            background: white;
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .match-number {
+            background: #3498db;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .participant-name {
+            flex: 1;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .vs {
+            color: #e74c3c;
+            font-weight: bold;
+            margin: 0 20px;
+        }
+
+        .winner {
+            background: linear-gradient(135deg, #27ae60, #219a52);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .spinning {
+            animation: spin 0.1s infinite linear;
+        }
+
+        @keyframes spin {
+            0% { transform: translateY(-100%); opacity: 0; }
+            100% { transform: translateY(100%); opacity: 1; }
+        }
+
+        .group-stage {
+            margin-top: 20px;
+        }
+
+        .group {
+            background: white;
+            border: 2px solid #9b59b6;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+
+        .group-header {
+            background: #9b59b6;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Générateur de Tirages Tournoi</h1>
+            <p>Organisez vos tournois avec des tirages aléatoires équitables</p>
+        </div>
+
+        <div class="content">
+            <!-- Panneau de gestion des participants -->
+            <div class="panel">
+                <h2>👥 Gestion des Participants</h2>
+                
+                <div class="input-group">
+                    <input type="text" id="participantInput" placeholder="Entrez un pseudo..." maxlength="20">
+                    <button onclick="addParticipant()">Ajouter</button>
+                </div>
+
+                <div class="participants-list" id="participantsList">
+                    <!-- Les participants apparaîtront ici -->
+                </div>
+
+                <div class="controls">
+                    <button onclick="clearParticipants()" class="btn-danger">Vider la liste</button>
+                    <button onclick="addDefaultParticipants()" class="btn-success">Participants par défaut</button>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <label for="tournamentType">Type de tournoi:</label>
+                    <select id="tournamentType" onchange="updateTournamentType()">
+                        <option value="elimination">Élimination directe</option>
+                        <option value="groups">Phase de groupes + Élimination</option>
+                        <option value="random">Tirage aléatoire simple</option>
+                    </select>
+                </div>
+
+                <div id="groupsConfig" style="margin-top: 15px; display: none;">
+                    <label for="groupsCount">Nombre de groupes:</label>
+                    <input type="number" id="groupsCount" min="2" max="8" value="4" style="width: 80px;">
+                </div>
+            </div>
+
+            <!-- Panneau de tirage au sort -->
+            <div class="panel">
+                <h2>🎰 Tirage au Sort</h2>
+                
+                <div class="draw-area">
+                    <div class="slot-machine">
+                        <div class="slot" id="slot1">-</div>
+                        <div class="slot" id="slot2">-</div>
+                        <div class="slot" id="slot3">-</div>
+                    </div>
+
+                    <button id="drawBtn" onclick="startDraw()">🎯 Lancer le tirage</button>
+                    <button onclick="generateBrackets()" style="margin-top: 10px;">🏆 Générer les brackets</button>
+                </div>
+
+                <div class="results" id="results">
+                    <!-- Résultats du tirage apparaîtront ici -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Liste des participants
+        let participants = [];
+        const defaultParticipants = [
+            'Loïc', 'ŒM Fire Bug', 'ŒMJoker', 'ŒM Joseph', 'ŒM b... e... s... t',
+            'MKWinner', 'Shaka', 'Břýán.ňš', 'Mr Landry', 'ČMPreclux'
+        ];
+
+        // Éléments DOM
+        const participantsList = document.getElementById('participantsList');
+        const participantInput = document.getElementById('participantInput');
+        const drawBtn = document.getElementById('drawBtn');
+        const resultsDiv = document.getElementById('results');
+        const slots = [
+            document.getElementById('slot1'),
+            document.getElementById('slot2'),
+            document.getElementById('slot3')
+        ];
+
+        // Ajouter un participant
+        function addParticipant() {
+            const name = participantInput.value.trim();
+            if (name && !participants.includes(name)) {
+                participants.push(name);
+                updateParticipantsList();
+                participantInput.value = '';
+                participantInput.focus();
+            }
+        }
+
+        // Ajouter avec la touche Entrée
+        participantInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addParticipant();
+            }
+        });
+
+        // Ajouter les participants par défaut
+        function addDefaultParticipants() {
+            participants = [...defaultParticipants];
+            updateParticipantsList();
+        }
+
+        // Vider la liste
+        function clearParticipants() {
+            participants = [];
+            updateParticipantsList();
+            resultsDiv.innerHTML = '';
+        }
+
+        // Mettre à jour l'affichage de la liste
+        function updateParticipantsList() {
+            participantsList.innerHTML = '';
+            participants.forEach((participant, index) => {
+                const div = document.createElement('div');
+                div.className = 'participant-item';
+                div.innerHTML = `
+                    <span>${participant}</span>
+                    <button onclick="removeParticipant(${index})" class="btn-danger">×</button>
+                `;
+                participantsList.appendChild(div);
+            });
+
+            // Mettre à jour l'état du bouton de tirage
+            drawBtn.disabled = participants.length < 2;
+        }
+
+        // Supprimer un participant
+        function removeParticipant(index) {
+            participants.splice(index, 1);
+            updateParticipantsList();
+        }
+
+        // Changer le type de tournoi
+        function updateTournamentType() {
+            const type = document.getElementById('tournamentType').value;
+            const groupsConfig = document.getElementById('groupsConfig');
+            groupsConfig.style.display = type === 'groups' ? 'block' : 'none';
+        }
+
+        // Lancer le tirage
+        function startDraw() {
+            if (participants.length < 2) {
+                alert('Ajoutez au moins 2 participants !');
+                return;
+            }
+
+            const type = document.getElementById('tournamentType').value;
+            drawBtn.disabled = true;
+
+            // Animation des slots
+            let spins = 0;
+            const maxSpins = 20;
+            const spinInterval = setInterval(() => {
+                slots.forEach(slot => {
+                    slot.textContent = participants[Math.floor(Math.random() * participants.length)];
+                });
+                spins++;
+                if (spins >= maxSpins) {
+                    clearInterval(spinInterval);
+                    finishDraw(type);
+                }
+            }, 100);
+        }
+
+        // Finaliser le tirage
+        function finishDraw(type) {
+            drawBtn.disabled = false;
+            
+            switch(type) {
+                case 'elimination':
+                    generateEliminationBracket();
+                    break;
+                case 'groups':
+                    generateGroups();
+                    break;
+                case 'random':
+                    displayRandomDraw();
+                    break;
+            }
+        }
+
+        // Générer un bracket d'élimination directe
+        function generateEliminationBracket() {
+            const shuffled = [...participants].sort(() => Math.random() - 0.5);
+            resultsDiv.innerHTML = '<h3>🏆 Arbre d\'Élimination Directe</h3>';
+            
+            for (let i = 0; i < shuffled.length; i += 2) {
+                if (i + 1 < shuffled.length) {
+                    const matchDiv = document.createElement('div');
+                    matchDiv.className = 'match';
+                    matchDiv.innerHTML = `
+                        <div class="match-number">Match ${(i/2) + 1}</div>
+                        <div class="participant-name">${shuffled[i]}</div>
+                        <div class="vs">VS</div>
+                        <div class="participant-name">${shuffled[i + 1]}</div>
+                    `;
+                    resultsDiv.appendChild(matchDiv);
+                } else {
+                    // Participant exempt (bye)
+                    const byeDiv = document.createElement('div');
+                    byeDiv.className = 'match';
+                    byeDiv.innerHTML = `
+                        <div class="match-number">Exempt</div>
+                        <div class="participant-name">${shuffled[i]}</div>
+                        <div class="vs">-</div>
+                        <div class="participant-name">Passe au tour suivant</div>
+                    `;
+                    resultsDiv.appendChild(byeDiv);
+                }
+            }
+        }
+
+        // Générer des groupes
+        function generateGroups() {
+            const groupsCount = parseInt(document.getElementById('groupsCount').value);
+            const shuffled = [...participants].sort(() => Math.random() - 0.5);
+            
+            resultsDiv.innerHTML = `<h3>📊 Phase de Groupes (${groupsCount} groupes)</h3>`;
+            
+            const groups = [];
+            for (let i = 0; i < groupsCount; i++) {
+                groups.push([]);
+            }
+            
+            // Répartir les participants dans les groupes
+            shuffled.forEach((participant, index) => {
+                groups[index % groupsCount].push(participant);
+            });
+            
+            // Afficher les groupes
+            groups.forEach((group, index) => {
+                if (group.length > 0) {
+                    const groupDiv = document.createElement('div');
+                    groupDiv.className = 'group';
+                    groupDiv.innerHTML = `
+                        <div class="group-header">Groupe ${String.fromCharCode(65 + index)}</div>
+                        ${group.map((p, i) => `<div style="padding: 5px; border-bottom: 1px solid #eee;">${i + 1}. ${p}</div>`).join('')}
+                    `;
+                    resultsDiv.appendChild(groupDiv);
+                }
+            });
+        }
+
+        // Tirage aléatoire simple
+        function displayRandomDraw() {
+            const shuffled = [...participants].sort(() => Math.random() - 0.5);
+            resultsDiv.innerHTML = '<h3>🎲 Ordre de Passage Aléatoire</h3>';
+            
+            shuffled.forEach((participant, index) => {
+                const matchDiv = document.createElement('div');
+                matchDiv.className = 'match';
+                matchDiv.innerHTML = `
+                    <div class="match-number">${index + 1}</div>
+                    <div class="participant-name">${participant}</div>
+                `;
+                resultsDiv.appendChild(matchDiv);
+            });
+        }
+
+        // Générer les brackets (alias pour compatibilité)
+        function generateBrackets() {
+            generateEliminationBracket();
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            addDefaultParticipants();
+        });
+    </script>
+</body>
+</html>
